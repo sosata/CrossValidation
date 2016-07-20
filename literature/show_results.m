@@ -35,6 +35,8 @@ xlim([0.5 2.5]);
 ylim([0 max([good,bad])]);
 box off;
 
+text(0,40,'A','fontsize',18,'fontweight','bold');
+
 %% plotting citations
 
 subplot 122;
@@ -65,5 +67,6 @@ set(gca, 'xtick', [1 2], 'xticklabel', {sprintf('Subject-wise (%d)',length(good)
 ylabel('Number of Citations');
 xlim([0.5 2.5]);
 ylim([0 max([good,bad])]);
-
 box off;
+
+text(0,140,'B','fontsize',18,'fontweight','bold');
