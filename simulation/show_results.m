@@ -20,8 +20,8 @@ for i=[4 12 32],
     set(gca, 'xtick', tick_pos, 'xticklabel', tick_lab, 'fontsize', 14);
     set(gca, 'ytick', tick_pos, 'yticklabel', tick_lab, 'fontsize', 14);
     set(gca, 'ydir', 'normal');
-    xlabel('cross-subject noise (\it{b})');
-    ylabel('within-subject noise (\it{c})');
+    xlabel('cross-subject variability (\it{b})');
+    ylabel('within-subject variability (\it{c})');
     
     h = subplot(2,3,cnt+3);
 %     set(h, 'position', [.6 plot_vertical_pos(cnt) .3 .2]);
@@ -29,8 +29,8 @@ for i=[4 12 32],
     colormap hot;
     set(gca, 'xtick', tick_pos, 'xticklabel', tick_lab, 'fontsize', 14);
     set(gca, 'ytick', tick_pos, 'yticklabel', tick_lab, 'fontsize', 14);
-    xlabel('cross-subject noise (\it{b})');
-    ylabel('within-subject noise (\it{c})');
+    xlabel('cross-subject variability (\it{b})');
+    ylabel('within-subject variability (\it{c})');
     set(gca, 'ydir', 'normal');
     
 end
@@ -49,6 +49,7 @@ text(63, 24, '32 Subjects', 'fontsize', 18, 'fontweight', 'bold', 'horizontalali
 
 text(78.5, -3, 'Classification Error', 'rotation', 90, 'fontsize', 14, 'fontweight', 'bold');
 
+text(-10,20,'A','fontsize',22,'fontweight','bold');
 
 h = figure;
 set(h,'position', [560   500   753   448]);
@@ -77,5 +78,4 @@ set(hl, 'fontsize', 14);
 set(gca,'fontsize', 14);
 box off;
 
-
-
+text(-.5,.5,'B','fontsize',22,'fontweight','bold');
