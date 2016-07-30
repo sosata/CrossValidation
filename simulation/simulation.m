@@ -158,6 +158,5 @@ if plot_results,
 end
 
 if save_results,
-    %save(sprintf('error_%dfeature',n_features), 'diff', 'acc_sw_', 'acc_rw_');
     save(sprintf('error_%dsubject',n_subjects), 'diff', 'acc_sw_', 'acc_rw_');
 end
