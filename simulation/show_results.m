@@ -52,28 +52,36 @@ text(78.5, -3, 'Classification Error', 'rotation', 90, 'fontsize', 14, 'fontweig
 text(-10,20,'A','fontsize',22,'fontweight','bold');
 
 h = figure;
-set(h,'position', [560   500   753   448]);
+set(h,'position', [455   224   753   590]);
 
 cnt = 0;
 for i = [4 8 12 16 20 24 28 32],
     cnt = cnt+1;
     load(sprintf('error_%dsubject.mat',i));
     rw_mean(cnt) = 1-mean(mean(acc_rw_));
-    rw_std(cnt) = std(std(acc_rw_));
+    rw_std(cnt) = std(acc_rw_(:))/sqrt(400)*2;
     sw_mean(cnt) = 1-mean(mean(acc_sw_));
-    sw_std(cnt) = std(std(acc_sw_));
+    sw_std(cnt) = std(acc_sw_(:))/sqrt(400)*2;
+
+    rw_rep_mean(cnt) = 1-mean(mean(acc_rw_rep_));
+    rw_rep_std(cnt) = std(acc_rw_rep_(:))/sqrt(400)*2;
+    sw_rep_mean(cnt) = 1-mean(mean(acc_sw_rep_));
+    sw_rep_std(cnt) = std(acc_sw_rep_(:))/sqrt(400)*2;
     
 end
 
 errorbar(rw_mean,rw_std,'-','linewidth',1, 'color',[.7 0 0]);
-hold on;
-errorbar(sw_mean,sw_std,'-','linewidth',1, 'color', [0 .55 .55]);
+hold on
+errorbar(sw_mean,sw_std,'-','linewidth',1, 'color', [0 0 0]);
+errorbar(rw_rep_mean,rw_rep_std,':','linewidth',3, 'color',[1 .65 .65]);
+errorbar(sw_rep_mean,sw_rep_std,':','linewidth',3, 'color', [.65 .65 .65]);
 set(gca, 'xtick', 1:8, 'xticklabel', {'4','8','12','16','20','24','28','32'});
 xlim([.5 8.5]);
 ylim([0 .5]);
 xlabel('Number of Subjects');
 ylabel('Classification Error');
-hl = legend('Record-wise CV','Subject-wise CV','location','northeast');
+hl = legend('record-wise CV','subject-wise CV','true error (record-wise)','true error (subject-wise)','location','northeast');
+errorbar(sw_mean,sw_std,'-','linewidth',1, 'color', [0 0 0]);
 set(hl, 'fontsize', 14);
 set(gca,'fontsize', 14);
 box off;

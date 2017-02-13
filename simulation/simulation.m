@@ -7,7 +7,8 @@ plot_results = false;
 n_features = 10;
 n_samples = 100;    % number of samples per subject
 
-n_subjects = 32;    % needs to be an even number
+n_subjects = 4;    % needs to be an even number
+n_subjects_rep = 10;
 n_test = n_subjects/2; % should be an even number
 
 A = 1;  % disease effect size
@@ -41,7 +42,6 @@ for k1 = 1:length(B0),
         %features_disease(2,:) = A/2 * feature_noise;
         
         features_sample = zeros(2, n_subjects/2, n_samples, n_features);
-        
         for c = 1:2,
             for j = 1:n_subjects/2,
                 % adding cross-subject noise
@@ -49,6 +49,19 @@ for k1 = 1:length(B0),
                 for k = 1:n_samples,
                     % adding within-subject noise
                     features_sample(c,j,k,:) = features_subject + C.*randn(n_features,1);
+                end
+            end
+        end
+
+        % replication set
+        features_sample_rep = zeros(2, n_subjects_rep/2, n_samples, n_features);
+        for c = 1:2,
+            for j = 1:n_subjects_rep/2,
+                % adding cross-subject noise
+                features_subject_rep = features_disease(c,:)' + B.*randn(n_features,1);
+                for k = 1:n_samples,
+                    % adding within-subject noise
+                    features_sample_rep(c,j,k,:) = features_subject_rep + C.*randn(n_features,1);
                 end
             end
         end
@@ -60,6 +73,7 @@ for k1 = 1:length(B0),
         n_train_pergroup = n_subjects_pergroup - n_test_pergroup;
         
         acc_sw = zeros(n_bootstrap,1);
+        acc_sw_rep = zeros(n_bootstrap,1);
         
         parfor i = 1:n_bootstrap,
             
@@ -83,13 +97,20 @@ for k1 = 1:length(B0),
             class_train = repmat([0; 1], [n_train_pergroup*n_samples 1]);
             
             %classifier
-%             RF = TreeBagger(ntrees, features_train, class_train);
-%             [class_pred, ~] = predict(RF, features_test);
-%             class_pred = str2double(class_pred);
-            [B, fitinfo] = lassoglm(features_train, class_train, 'binomial', 'alpha', .5, 'Lambda', .01);
-            class_pred = hardlim(features_test*B + fitinfo.Intercept);
+            RF = TreeBagger(ntrees, features_train, class_train);
             
+            %validation
+            [class_pred, ~] = predict(RF, features_test);
+            class_pred = str2double(class_pred);
             acc_sw(i) = mean(class_pred==class_test);
+            
+            %replication
+            features_test = reshape(features_sample_rep, [n_subjects_rep*n_samples n_features]);
+            class_test = repmat([0; 1], [(n_subjects_rep/2)*n_samples 1]);
+            [class_pred, ~] = predict(RF, features_test);
+            class_pred = str2double(class_pred);
+            acc_sw_rep(i) = mean(class_pred==class_test);
+            
             
         end
         
@@ -100,6 +121,7 @@ for k1 = 1:length(B0),
         clear features_test features_train class_test class_train;
         
         acc_rw = zeros(n_bootstrap,1);
+        acc_rw_rep = zeros(n_bootstrap,1);
         
         parfor i = 1:n_bootstrap,
             
@@ -122,19 +144,27 @@ for k1 = 1:length(B0),
             features_train = reshape(features_train, [2*n_train_pergroup*n_samples n_features]);
             class_train = repmat([0; 1], [n_train_pergroup*n_samples 1]);
             
-            %classifier
-%             RF = TreeBagger(ntrees, features_train, class_train);
-%             [class_pred, ~] = predict(RF, features_test);
-%             class_pred = str2double(class_pred);
-            [B, fitinfo] = lassoglm(features_train, class_train, 'binomial', 'alpha', .5, 'Lambda', .01);
-            class_pred = hardlim(features_test*B + fitinfo.Intercept);
+            %training
+            RF = TreeBagger(ntrees, features_train, class_train);
             
+            % validation
+            [class_pred, ~] = predict(RF, features_test);
+            class_pred = str2double(class_pred);
             acc_rw(i) = mean(class_pred==class_test);
+            
+            % replication
+            features_test = reshape(features_sample_rep, [n_subjects_rep*n_samples n_features]);
+            class_test = repmat([0; 1], [(n_subjects_rep/2)*n_samples 1]);
+            [class_pred, ~] = predict(RF, features_test);
+            class_pred = str2double(class_pred);
+            acc_rw_rep(i) = mean(class_pred==class_test);
             
         end
         
         acc_rw_(k1,k2) = mean(acc_rw);
         acc_sw_(k1,k2) = mean(acc_sw);
+        acc_rw_rep_(k1,k2) = mean(acc_rw_rep);
+        acc_sw_rep_(k1,k2) = mean(acc_sw_rep);
         
         diff(k1,k2) = mean(acc_rw - acc_sw);
         
@@ -158,5 +188,5 @@ if plot_results,
 end
 
 if save_results,
-    save(sprintf('error_%dsubject',n_subjects), 'diff', 'acc_sw_', 'acc_rw_');
+    save(sprintf('error_%dsubject',n_subjects), 'diff', 'acc_sw_', 'acc_rw_', 'acc_sw_rep_', 'acc_rw_rep_');
 end

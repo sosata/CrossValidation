@@ -1,14 +1,14 @@
 
 # coding: utf-8
 
-# In[2]:
+# In[3]:
 
 def model(x):
     y = -10.1*x**2 + 10.6*x + 300.7
     return y
 
 
-# In[18]:
+# In[11]:
 
 import numpy as np
 
@@ -29,14 +29,14 @@ x_rep = cen_rep + np.random.normal(loc=0, scale=0.1, size=100)
 y_rep = model(x_rep) + np.random.normal(loc=0, scale=100, size=100)
 
 
-# In[41]:
+# In[9]:
 
 import matplotlib.pyplot as plt
 get_ipython().magic(u'matplotlib inline')
 plt.figure(figsize=[12,5])
 plt.plot(np.arange(-10,6,.01), model(np.arange(-10,6,.01)),color='black')
-plt.scatter(x,y,color='black',label='main dataset')
-plt.scatter(x_rep,y_rep,color='green',label='replication dataset')
+plt.scatter(x,y,color='black',label='dataset')
+plt.scatter(x_rep,y_rep,color='green',label='new subject')
 plt.xlabel('X')
 plt.ylabel('Y')
 plt.title('Data')
@@ -44,7 +44,7 @@ plt.xlim([-10,7])
 plt.legend(loc='upper left')
 
 
-# In[42]:
+# In[12]:
 
 # record-wise
 n_bootstrap = 100
@@ -65,12 +65,12 @@ for degree in range(7):
         y_pred_rep = np.polyval(p, x_rep)
         rmse_rep[degree,i] = np.sqrt(np.mean((y_pred_rep-y_rep)**2))
 plt.figure(figsize=[8,5])
-plt.plot(range(7),np.log10(np.mean(rmse, axis=1)),color='black',label='cross-validation')
-plt.plot(range(7),np.log10(np.min(rmse, axis=1)),'--',color='black')
-plt.plot(range(7),np.log10(np.max(rmse, axis=1)),'--',color='black')
-plt.plot(range(7),np.log10(np.mean(rmse_rep, axis=1)),color='green',label='replication')
-plt.plot(range(7),np.log10(np.min(rmse_rep, axis=1)),'--',color='green')
-plt.plot(range(7),np.log10(np.max(rmse_rep, axis=1)),'--',color='green')
+plt.plot(range(7),np.mean(np.log10(rmse), axis=1),color='black',label='cross-validation')
+plt.plot(range(7),np.percentile(np.log10(rmse), 95, axis=1),'--',color='black')
+plt.plot(range(7),np.percentile(np.log10(rmse), 5, axis=1),'--',color='black')
+plt.plot(range(7),np.mean(np.log10(rmse_rep), axis=1),color='green',label='true prediction error')
+plt.plot(range(7),np.percentile(np.log10(rmse_rep), 95, axis=1),'--',color='green')
+plt.plot(range(7),np.percentile(np.log10(rmse_rep), 5, axis=1),'--',color='green')
 plt.xlabel('model degree')
 plt.ylabel('log10(rmse)')
 plt.title('record-wise')
@@ -79,21 +79,14 @@ plt.grid()
 plt.legend(loc='upper left')
 
 
-# In[43]:
+# In[13]:
 
 # subject-wise (Little way)
-# n_bootstrap = 100
-# n_train_range = [1,2,3,4] # number of train subjects
 rmse = np.zeros([7,5])
 rmse_rep = np.zeros([7,5])
 inds = np.arange(5)
 for degree in range(7):
     for i in range(5):
-#         n_train = np.random.choice(np.array(n_train_range),size=1)[0]
-#         n_train = 1
-#         np.random.shuffle(inds)
-#         ind_train = inds[:n_train]
-#         ind_test = inds[n_train:]
         ind_train = [i]
         ind_test = [j for j in np.arange(5) if j!=i]
         
@@ -102,37 +95,27 @@ for degree in range(7):
         x_test = np.concatenate(np.array([xx[j,:] for j in ind_test]))
         y_test = np.concatenate(np.array([yy[j,:] for j in ind_test]))
 
-        # stratification
-#         x_train = np.random.choice(x_train, size=250, replace=True)
-#         y_train = np.random.choice(y_train, size=250, replace=True)
-#         x_test = np.random.choice(x_test, size=100, replace=False)
-#         y_test = np.random.choice(y_test, size=100, replace=False)
-
         p = np.polyfit(x_train, y_train, deg=degree, rcond=None, full=False, w=None, cov=False)
         y_pred = np.polyval(p, x_test)
         rmse[degree,i] = np.sqrt(np.mean((y_pred-y_test)**2))
         y_pred_rep = np.polyval(p, x_rep)
         rmse_rep[degree,i] = np.sqrt(np.mean((y_pred_rep-y_rep)**2))
     
-
 plt.figure(figsize=[8,5])
 plt.plot(range(7),np.log10(np.mean(rmse,axis=1)),color='black',label='cross-validation')
 plt.plot(range(7),np.log10(np.max(rmse, axis=1)),'--',color='black')
 plt.plot(range(7),np.log10(np.min(rmse, axis=1)),'--',color='black')
-plt.plot(range(7),np.log10(np.mean(rmse_rep,axis=1)),color='green',label='replication')
-plt.plot(range(7),np.log10(np.max(rmse_rep, axis=1)),'--',color='green')
-plt.plot(range(7),np.log10(np.min(rmse_rep, axis=1)),'--',color='green')
-# plt.plot(range(7),np.mean(rmse, axis=1),color='black')
-# plt.plot(range(7),np.max(rmse, axis=1),'--',color='black')
-# plt.plot(range(7),np.min(rmse, axis=1),'--',color='black')
+# plt.plot(range(7),np.log10(np.mean(rmse_rep,axis=1)),color='green',label='replication')
+# plt.plot(range(7),np.log10(np.max(rmse_rep, axis=1)),'--',color='green')
+# plt.plot(range(7),np.log10(np.min(rmse_rep, axis=1)),'--',color='green')
 plt.xlabel('model degree')
 plt.ylabel('log10(rmse)')
-plt.title('subject-wise (Max Little way)')
+plt.title('subject-wise (training on 1 subject)')
 plt.grid()
 plt.legend(loc='upper left')
 
 
-# In[44]:
+# In[14]:
 
 # subject-wise (leave-one-out)
 rmse = np.zeros([7,5])
@@ -144,12 +127,6 @@ for degree in range(7):
         x_train = np.concatenate(np.array([xx[j,:] for j in range(5) if j!=i]))
         y_train = np.concatenate(np.array([yy[j,:] for j in range(5) if j!=i]))
 
-        # stratification
-#         x_train = np.random.choice(x_train, size=250, replace=False)
-#         y_train = np.random.choice(y_train, size=250, replace=False)
-#         x_test = np.random.choice(x_test, size=250, replace=True)
-#         y_test = np.random.choice(y_test, size=250, replace=True)
-
         p = np.polyfit(x_train, y_train, deg=degree, rcond=None, full=False, w=None, cov=False)
         y_pred = np.polyval(p, x_test)
         rmse[degree,i] = np.sqrt(np.mean((y_pred-y_test)**2))
@@ -157,15 +134,20 @@ for degree in range(7):
         rmse_rep[degree,i] = np.sqrt(np.mean((y_pred_rep-y_rep)**2))
     
 plt.figure(figsize=[8,5])
-plt.plot(range(7),np.log10(np.mean(rmse, axis=1)),color='black',label='cross-validation')
-plt.plot(range(7),np.log10(np.max(rmse, axis=1)),'--',color='black')
-plt.plot(range(7),np.log10(np.min(rmse, axis=1)),'--',color='black')
-plt.plot(range(7),np.log10(np.mean(rmse_rep, axis=1)),color='green',label='replication')
-plt.plot(range(7),np.log10(np.max(rmse_rep, axis=1)),'--',color='green')
-plt.plot(range(7),np.log10(np.min(rmse_rep, axis=1)),'--',color='green')
+plt.plot(range(7),np.mean(np.log10(rmse), axis=1),color='black',label='cross-validation')
+plt.plot(range(7),np.max(np.log10(rmse), axis=1),'--',color='black')
+plt.plot(range(7),np.min(np.log10(rmse), axis=1),'--',color='black')
+plt.plot(range(7),np.mean(np.log10(rmse_rep), axis=1),color='green',label='true prediction error')
+plt.plot(range(7),np.max(np.log10(rmse_rep), axis=1),'--',color='green')
+plt.plot(range(7),np.min(np.log10(rmse_rep), axis=1),'--',color='green')
 plt.xlabel('model degree')
 plt.ylabel('log10(rmse)')
-plt.title('subject-wise (leave-one-out)')
+plt.title('subject-wise')
 plt.grid()
 plt.legend(loc='upper left')
+
+
+# In[17]:
+
+np.mean(np.log10(rmse),axis=1)
 
