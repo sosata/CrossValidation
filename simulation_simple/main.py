@@ -81,7 +81,7 @@ plt.legend(loc='upper left')
 
 # In[13]:
 
-# subject-wise (Little way)
+# subject-wise (leave-one-in)
 rmse = np.zeros([7,5])
 rmse_rep = np.zeros([7,5])
 inds = np.arange(5)
