@@ -1,13 +1,12 @@
 clear;
 close all;
 
-save_results = true;
-plot_results = false;
+save_errors = false;
 
 n_features = 10;
 n_samples = 100;    % number of samples per subject
 
-n_subjects = 4;    % needs to be an even number
+n_subjects = 32;    % needs to be an even number
 n_subjects_rep = 10;
 n_test = n_subjects/2; % should be an even number
 
@@ -19,7 +18,6 @@ ntrees = 50;
 B0 = .1:.1:2;   % cross-subject noise
 C0 = .1:.1:2;   % within-subject noise
 
-diff = zeros(length(B0), length(C0));
 acc_rw_ = zeros(length(B0), length(C0));
 acc_sw_ = zeros(length(B0), length(C0));
 counter = 1;    %to display the iteration 
@@ -38,8 +36,6 @@ for k1 = 1:length(B0),
         feature_noise = feature_std*randn(n_features,1);
         features_disease(1,:) = -A/2 + feature_noise;
         features_disease(2,:) = A/2 + feature_noise;
-        %features_disease(1,:) = -A/2 * feature_noise;
-        %features_disease(2,:) = A/2 * feature_noise;
         
         features_sample = zeros(2, n_subjects/2, n_samples, n_features);
         for c = 1:2,
@@ -166,27 +162,10 @@ for k1 = 1:length(B0),
         acc_rw_rep_(k1,k2) = mean(acc_rw_rep);
         acc_sw_rep_(k1,k2) = mean(acc_sw_rep);
         
-        diff(k1,k2) = mean(acc_rw - acc_sw);
-        
-        if isnan(diff(k1,k2)),
-            disp('Warning: NaN value in accuracies');
-        end
-        
         counter = counter + 1;
     end
 end
 
-if plot_results,
-    imagesc(diff');
-    colormap hot;
-    set(gca, 'xtick', 1:length(B0), 'xticklabel', num2str(B0'));
-    set(gca, 'ytick', 1:length(C0), 'yticklabel', num2str(C0'));
-    xlabel('B_0');
-    ylabel('C_0');
-    colorbar;
-    title('CE_{SWCV} - CE_{RWCV}');
-end
-
-if save_results,
-    save(sprintf('error_%dsubject',n_subjects), 'diff', 'acc_sw_', 'acc_rw_', 'acc_sw_rep_', 'acc_rw_rep_');
+if save_errors,
+    save(sprintf('error_%dsubject',n_subjects), 'acc_sw_', 'acc_rw_', 'acc_sw_rep_', 'acc_rw_rep_');
 end
