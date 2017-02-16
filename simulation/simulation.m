@@ -1,6 +1,8 @@
 clear;
 close all;
 
+rng(0);	% setting the seed for random number generator
+
 save_errors = false;
 
 n_features = 10;
